@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
+from base64 import b64decode, b64encode
+from pickle import dumps, loads
 
 if TYPE_CHECKING:
 	from typing import Callable
@@ -14,12 +16,16 @@ if TYPE_CHECKING:
 
 lookup: dict[int, Callable[['StenoEngine'], None]] = {}  # may have memory leak
 
-
 def cmd(engine: 'StenoEngine', id_: str)->None:
 	"""
 	Command function.
 	"""
-	lookup[int(id_)](engine)
+	if ":" in id_:
+		id_, args = id_.split(":", maxsplit=1)
+		args, kwargs = loads(b64decode(args))
+		lookup[int(id_)](engine, *args, **kwargs)
+	else:
+		lookup[int(id_)](engine)
 
 
 @dataclass
@@ -38,3 +44,6 @@ class register:
 
 	def __repr__(self)->str:
 		return f"register({self.func})"
+
+	def str_with_args(self, *args, **kwargs)->str:
+		return "{plover:python_dictionary_cmd:" + str(id(self.func)) + ":" + b64encode(dumps((args, kwargs))).decode() + "}"

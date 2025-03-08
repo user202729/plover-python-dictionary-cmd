@@ -59,10 +59,28 @@ def f(engine):
 
 def lookup(key):
     if key == ("SKWR-F",):
-        return str(f)
+        return str(f)  # or: f.str_with_args()
 ```
 
 As an extra bonus, you get access to the `engine` object inside the function `f` above.
+
+## Extra
+
+`f.str_with_args()` works as follows:
+`f.str_with_args(1, 2)` returns a string, which when interpreted as a Plover command
+and executed, will call `f(engine, 1, 2)`.
+
+As such, you can also modify the code above as follows:
+
+```python
+@plover_python_dictionary_cmd.register
+def f(engine, url):
+    webbrowser.open(url)
+
+def lookup(key):
+    if key == ("SKWR-F",):
+        return f.str_with_args("https://www.openstenoproject.org/")
+```
 
 ## Internal implementation detail
 
